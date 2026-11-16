@@ -118,6 +118,22 @@ controls.
 #media(path("explorer.html"), sync: "independent", duration: 12, width: 80%)
 ```
 
+What the presenter changes on the page reaches viewers following them, and
+every viewer when the presenter presses **Sync**. Form fields (sliders,
+checkboxes, selects, text) come along by themselves. Anything else, the page
+hands over with `presio.sync`. `get` returns JSON-able data, and Presio asks for
+it a few times a second. `set` receives a copy of the presenter's data:
+
+```js
+if (window.presio) presio.sync({
+  get: () => ({ points }),
+  set: (s) => { points = s.points; },
+});
+```
+
+Keep it small (it has to fit in 15 KB). The state also survives seeking back,
+but not a restart.
+
 Presio previews the animation where it can't run it: slide thumbnails, the
 next-slide view, and PDFs downloaded from Presio show a frame from near its
 end (2 s in when it has no set length). Pick another with `poster-at:`

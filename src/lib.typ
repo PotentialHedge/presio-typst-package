@@ -469,6 +469,9 @@
 //     a scrubber (when the length is known). Default true; the presenter
 //     always has them. In HTML export: whether the page shows them.
 //   - `interactive`: clicks, drags and hovers reach the page. Default true.
+//     What the presenter changes reaches viewers following (and everyone on
+//     "Sync"): form fields by themselves, other state when the page calls
+//     `presio.sync({ get, set })`.
 //   - `duration`: its length in seconds, for the scrubber and looping.
 //     Without it, it's measured from its CSS animations when those are all
 //     it runs; otherwise it plays open-ended.
