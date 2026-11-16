@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; height: 100%; background: #fff; font: 14px system-ui, sans-serif; }
+  .chart { display: flex; align-items: flex-end; gap: 6%; height: 80%; padding: 6% 8% 0; box-sizing: border-box; }
+  .bar { flex: 1; background: #6366f1; border-radius: 4px 4px 0 0; transform-origin: bottom; animation: grow 1s ease-out both; }
+  .bar:nth-child(2) { animation-delay: .6s; background: #8b5cf6; }
+  .bar:nth-child(3) { animation-delay: 1.2s; background: #ec4899; }
+  .bar:nth-child(4) { animation-delay: 1.8s; background: #f97316; }
+  .caption { text-align: center; padding-top: 2%; opacity: 0; animation: fade .6s 3s both; }
+  @keyframes grow { from { transform: scaleY(0); } }
+  @keyframes fade { to { opacity: 1; } }
+</style>
+</head>
+<body>
+  <div class="chart">
+    <div class="bar" style="height: 40%"></div>
+    <div class="bar" style="height: 65%"></div>
+    <div class="bar" style="height: 85%"></div>
+    <div class="bar" style="height: 100%"></div>
+  </div>
+  <div class="caption">Pure CSS: presio measures its length, so it gets a scrubber.</div>
+</body>
+</html>
