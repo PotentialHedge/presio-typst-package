@@ -118,6 +118,11 @@ controls.
 #media(path("explorer.html"), sync: "independent", duration: 12, width: 80%)
 ```
 
+Presio previews the animation where it can't run it: slide thumbnails, the
+next-slide view, and PDFs downloaded from Presio show a frame from near its
+end (2 s in when it has no set length). Pick another with `poster-at:`
+seconds. The PDF Typst writes shows `placeholder`, as for other media.
+
 The page is sandboxed: its scripts run, but on an opaque origin, with no
 access to presio, the deck or the viewer's storage (so `localStorage` and
 cookies are unavailable inside it).
@@ -150,6 +155,7 @@ seconds per megabyte. Note that Typst's HTML export leaves out anything inside
 | `controls`     | `true`  | HTML animations: controls for viewers playing it themselves, and in HTML export. The presenter always has them. |
 | `interactive`  | `true`  | HTML animations: clicks, drags and hovers reach the page.                                                   |
 | `duration`     | `none`  | HTML animations: length in seconds, for the scrubber and looping. Measured from CSS animations when omitted and those are all it runs. |
+| `poster-at`    | `none`  | HTML animations: the moment (seconds) Presio uses as its preview in thumbnails, the next-slide view and PDFs downloaded from Presio. Defaults to near the end, or 2 s in when open-ended. |
 
 ## Supported media types
 
@@ -182,7 +188,7 @@ Common fields: `kind`, `slide`, `id`, `mime`, `x_pt`, `y_pt`, `w_pt`, `h_pt`,
 | `url`     | `url` (direct media URL)         |
 | `youtube` | `url`, `video_id`                |
 | `vimeo`   | `url`, `video_id`                |
-| `html`    | `filename` (the page), `sync`, `controls`, `interactive`, and when given `assets` (`[{ "path", "filename" }]`, one attachment each) and `duration` |
+| `html`    | `filename` (the page), `sync`, `controls`, `interactive`, and when given `assets` (`[{ "path", "filename" }]`, one attachment each), `duration` and `poster_at` |
 
 ```json
 {

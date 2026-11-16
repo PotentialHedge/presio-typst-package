@@ -250,6 +250,7 @@
   controls: true,
   interactive: true,
   duration: none,
+  poster-at: none,
 ) = (
   layout(container => context {
     // Use the physical page (`here().page()`), not the logical page counter.
@@ -396,6 +397,7 @@
       )
       if asset-files.len() > 0 { extra.insert("assets", asset-files.map(a => (path: a.path, filename: a.filename))) }
       if duration != none { extra.insert("duration", duration) }
+      if poster-at != none { extra.insert("poster_at", poster-at) }
       meta + extra
     } else if kind == "youtube" {
       meta + (url: source, video_id: yt-id)
@@ -470,6 +472,10 @@
 //   - `duration`: its length in seconds, for the scrubber and looping.
 //     Without it, it's measured from its CSS animations when those are all
 //     it runs; otherwise it plays open-ended.
+//   - `poster-at`: the moment, in seconds, Presio shows as its preview (in
+//     thumbnails, the next-slide view and a PDF downloaded from Presio).
+//     Default: near the end, or 2 s in when it has no set length. The PDF
+//     itself shows `placeholder`.
 //
 // Exported to HTML (`typst compile --features html --format html`), media
 // becomes the real thing on the page: the animation in a sandboxed <iframe>
@@ -488,6 +494,7 @@
   controls: true,
   interactive: true,
   duration: none,
+  poster-at: none,
 ) = context {
   assert(
     sync in ("presenter", "independent"),
@@ -496,6 +503,10 @@
   assert(
     duration == none or (type(duration) in (int, float) and duration > 0),
     message: "presio.media: `duration` must be a number of seconds > 0",
+  )
+  assert(
+    poster-at == none or (type(poster-at) in (int, float) and poster-at >= 0),
+    message: "presio.media: `poster-at` must be a number of seconds >= 0",
   )
   if target() == "html" {
     _media-html(
@@ -527,6 +538,7 @@
       controls: controls,
       interactive: interactive,
       duration: duration,
+      poster-at: poster-at,
     )
   }
 }

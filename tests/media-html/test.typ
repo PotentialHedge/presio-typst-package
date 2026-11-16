@@ -8,7 +8,7 @@
 
 #media(path("anim/index.html"), assets: (path("anim/js/app.js"), path("anim/sprite.gif")), width: 200pt, aspect-ratio: 2)
 #pagebreak()
-#media(path("anim/index.html"), name: "two.html", sync: "independent", controls: false, interactive: false, duration: 4, width: 100pt)
+#media(path("anim/index.html"), name: "two.html", sync: "independent", controls: false, interactive: false, duration: 4, poster-at: 1.5, width: 100pt)
 
 #context {
   check("index_html", kind: "html", mime: "text/html", w: 200pt, h: 100pt)
