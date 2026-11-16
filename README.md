@@ -12,6 +12,7 @@ template.
 [![Present the Touying demo](https://img.shields.io/badge/Present%20the%20Touying%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/touying/example.pdf)
 [![Present the polylux demo](https://img.shields.io/badge/Present%20the%20polylux%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/polylux/example.pdf)
 [![Present the HTML animation demo](https://img.shields.io/badge/Present%20the%20HTML%20animation%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/html-animation/example.pdf)
+[![Present the workshop demo](https://img.shields.io/badge/Present%20the%20workshop%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/workshop/example.pdf)
 [![Present the plain demo](https://img.shields.io/badge/Present%20the%20plain%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/plain/example.pdf)
 
 ## Install
@@ -230,6 +231,7 @@ alongside the source.
 | Plain Typst | [`examples/plain/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/plain/example.typ)     | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/plain/example.pdf)   |
 | polylux     | [`examples/polylux/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/polylux/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/polylux/example.pdf) |
 | HTML animations | [`examples/html-animation/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/html-animation/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/html-animation/example.pdf) |
+| Workshop (touying, viewers drive) | [`examples/workshop/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/workshop/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/workshop/example.pdf) |
 | touying     | [`examples/touying/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/touying/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/touying/example.pdf) |
 
 Rebuild with `typst compile --root . examples/<framework>/example.typ examples/<framework>/example.pdf` from the repo root. The `--root .` flag is required so the file-`path` sandbox can resolve `demo.gif`.
