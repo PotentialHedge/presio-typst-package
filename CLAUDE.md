@@ -1,6 +1,6 @@
 # presio — Typst package
 
-Framework-agnostic Typst package that attaches **speaker notes** and **embedded media** (GIF / MP4 / WebM, plus YouTube/Vimeo URLs) to a compiled PDF so it can be presented with the [presio.xyz](https://presio.xyz) viewer.
+Framework-agnostic Typst package that attaches **speaker notes**, **embedded media** (GIF / MP4 / WebM, plus YouTube/Vimeo URLs) and **HTML animations** to a compiled PDF so it can be presented with the [presio.xyz](https://presio.xyz) viewer.
 
 Published as `@preview/presio` on Typst Universe (PR'd through `typst/packages`).
 
@@ -12,6 +12,7 @@ Published as `@preview/presio` on Typst Universe (PR'd through `typst/packages`)
 ├── README.md               # user-facing docs
 ├── LICENSE                 # MIT
 ├── src/lib.typ             # entrypoint — exports `media` and `speaker-notes`
+├── src/html-runtime.js     # HTML animation runtime, shared verbatim with presio's media plugin
 └── examples/
     ├── demo.gif            # shared media fixture
     ├── plain/example.typ   # raw Typst pages
@@ -44,6 +45,7 @@ Coverage:
 - `tests/media-flow/` — one sidecar per *physical* page: a repeating page header, and a block pushed to the next page by overflow.
 - `tests/media-options/` — `width` / `height` / `aspect-ratio` / `placeholder` precedence, and `kind` + `mime` derivation (uppercase extension behind a query string, no extension at all, `name:` override).
 - `tests/media-reuse/` — one local file on three slides: bytes attached once, one sidecar per page.
+- `tests/media-html/` — HTML animations: `kind` / `mime`, asset paths made relative to the page (array and dictionary forms), `_b64`, and the frame document `_html-srcdoc` builds.
 - `tests/speaker-notes-concat/` — multiple calls on one slide concatenate.
 - `tests/speaker-notes-stacked/` — back-to-back calls with no separator content.
 - `tests/speaker-notes-pages/` — one sidecar per physical page, notes emitted from a page header repeating on every page, and stability under introspection (`outline()` plus direct `query`).
@@ -71,16 +73,18 @@ Emits one `notes-slide-<N>.json` per slide. Multiple calls on the same slide are
 
 Implementation: each call drops a labeled `metadata` element (`<_presio-notes>`) and a `context` block. Only the context block following the *last* metadata on a page emits the `pdf.attach`, detected via y-position comparison against `query(<_presio-notes>)` filtered to the current page. Guarantees exactly one attachment per slide regardless of call count.
 
-### `media(source, name: none, width: auto, height: auto, autoplay: true, loop: true, placeholder: auto, aspect-ratio: none)`
+### `media(source, name: none, width: auto, height: auto, autoplay: true, loop: true, placeholder: auto, aspect-ratio: none, assets: (), sync: "presenter", controls: true, interactive: true, duration: none)`
 - `source` is **either** a `path` (constructed with `path("figures/demo.gif")` at the call site, Typst 0.15+) **or** a `http(s)://` URL string.
 - For paths, the package internally does `read(source, encoding: none)` for bytes and `image(source)` for the default placeholder. The path type carries its caller scope so this works from inside the package.
-- `kind` is computed: `file` | `url` | `youtube` | `vimeo`. YouTube/Vimeo detected by regex against the URL; `video_id` is extracted and emitted in the sidecar.
+- `kind` is computed: `file` | `html` | `url` | `youtube` | `vimeo`. A path to an `.html`/`.htm` file is `html`: an HTML animation. Its `assets` (paths, made relative to the page, or a dictionary URL → path) are attached as `media-asset-<id>-<n>-<name>`; `sync` / `controls` / `interactive` / `duration` go into the sidecar. YouTube/Vimeo detected by regex against the URL; `video_id` is extracted and emitted in the sidecar.
 - For `file` kind, the bytes are attached as `media-<safe-id>.<ext>`.
 - For every call, a `media-slide-<N>-<safe-id>.json` sidecar with placement (`x_pt`, `y_pt`, `w_pt`, `h_pt`) and `kind`-specific extras is attached.
 - `placeholder: auto` → `image(source)` for file mode, dark block for URLs. `placeholder: none` → force dark block. Any `content` → use it.
 
 ## Key design decisions
 
+- **One runtime for HTML animations, in two places.** `src/html-runtime.js` is a copy of presio's `client/plugins/media/html-runtime.js` (PotentialHedge/presio) — keep them identical. It loads the bundle (page + assets, as JSON in the frame's own document), resolves relative URLs to the bundled files, and owns the page's clock. In the PDF, presio's media plugin builds the frame document from the attachments; in HTML export, `_html-srcdoc` builds the same document into an `<iframe srcdoc>`. `media` branches on `target()` *before* `layout`, which HTML export ignores.
+- **HTML export drops `align`.** Typst's HTML export leaves out anything `align` wraps, so the HTML animation example places `media` without it.
 - **Caller passes a `path`.** Typst's `read()` / `image()` inside a package historically resolved relative to the *package* directory, not the caller — forcing v0.1 to take pre-read `bytes`. Typst 0.15's file `path` type (typst/typst#7555) fixes this: `path("figures/demo.gif")` constructed in the deck remembers its origin scope, so the package can `read()` and `image()` it directly. v0.2 requires Typst 0.15+. v0.1 (bytes API) is kept for users on older Typst.
 - **`width` / `height` default to `auto`.** `auto` width prefers the placeholder's natural width (via `measure`), else the container width. `auto` height uses placeholder aspect ratio, else `aspect-ratio`, else 16:9.
 - **Concatenate, don't collide.** Multiple `speaker-notes` on one slide → single sidecar, array of entries. Multiple `media` on one slide → distinct attachments keyed by `safe-id` (derived from `name` / URL).
@@ -104,6 +108,7 @@ Implementation: each call drops a labeled `metadata` element (`<_presio-notes>`)
 - `url` → `url`
 - `youtube` → `url`, `video_id`
 - `vimeo` → `url`, `video_id`
+- `html` → `filename`, `sync`, `controls`, `interactive`, and when given `assets` (`[{path, filename}]`) and `duration`
 
 ## Publishing workflow (typst/packages)
 

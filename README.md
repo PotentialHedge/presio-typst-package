@@ -1,21 +1,24 @@
 # presio
 
-Attach **speaker notes** and **embedded media** (GIF / MP4 / WebM) to PDF slides
-so they can be presented with the [presio.xyz](https://presio.xyz) viewer.
+Attach **speaker notes**, **embedded media** (GIF / MP4 / WebM, YouTube /
+Vimeo) and **HTML animations** to PDF slides so they can be presented with the
+[presio.xyz](https://presio.xyz) viewer.
 
 `presio` is framework-agnostic — it works with [polylux](https://typst.app/universe/package/polylux),
 [touying](https://typst.app/universe/package/touying), or plain Typst pages. It
 only contributes two functions; layout and slide flow are up to your existing
 template.
 
-[![Present the Touying demo](https://img.shields.io/badge/Present%20the%20Touying%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.2.3/examples/touying/example.pdf)
-[![Present the polylux demo](https://img.shields.io/badge/Present%20the%20polylux%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.2.3/examples/polylux/example.pdf)
-[![Present the plain demo](https://img.shields.io/badge/Present%20the%20plain%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.2.3/examples/plain/example.pdf)
+[![Present the Touying demo](https://img.shields.io/badge/Present%20the%20Touying%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/touying/example.pdf)
+[![Present the polylux demo](https://img.shields.io/badge/Present%20the%20polylux%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/polylux/example.pdf)
+[![Present the HTML animation demo](https://img.shields.io/badge/Present%20the%20HTML%20animation%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/html-animation/example.pdf)
+[![Present the workshop demo](https://img.shields.io/badge/Present%20the%20workshop%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/workshop/example.pdf)
+[![Present the plain demo](https://img.shields.io/badge/Present%20the%20plain%20demo-7C3AED)](https://presio.xyz/present?from=https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/plain/example.pdf)
 
 ## Install
 
 ```typ
-#import "@preview/presio:0.2.3": media, speaker-notes
+#import "@preview/presio:0.3.0": media, speaker-notes
 ```
 
 Requires Typst 0.15 or newer (for the file `path` type). Users on Typst
@@ -82,6 +85,76 @@ the viewer can use to build an iframe embed.
 #media("https://vimeo.com/76979871", width: 60%, aspect-ratio: 16/9)
 ```
 
+### HTML animations
+
+Point `media` at an `.html` file and it's played as an animation: presio runs
+the page in a sandboxed frame, on a clock it plays, pauses, seeks and keeps in
+time on every screen — `requestAnimationFrame`, timers, CSS and Web
+Animations, SVG animations and `<video>` all follow it. List the files the
+page loads in `assets`; each is attached to the PDF and reached by the page at
+its path relative to the page.
+
+```typ
+#media(
+  path("orbit/index.html"),
+  assets: (path("orbit/js/main.js"), path("orbit/js/planets.js"), path("orbit/css/style.css")),
+  width: 70%,
+  aspect-ratio: 16/9,
+)
+```
+
+Relative URLs work wherever the page uses them: in `src` / `href`, in CSS
+`url()` and `@import`, in ES module imports, and in `fetch`, XHR and `src`
+set from script. Absolute URLs (a library from a CDN) load from the network
+as usual. To give an asset a different URL than its path, pass a dictionary:
+`assets: ("lib/d3.js": path("vendor/d3.v7.min.js"))`.
+
+By default viewers follow the presenter. `sync: "independent"` hands the
+animation to each viewer instead, with its own controls (play / pause,
+restart, a scrubber when the length is known) and its own clicks and drags.
+The presenter can switch between the two at any time from the animation's
+controls.
+
+```typ
+#media(path("explorer.html"), sync: "independent", duration: 12, width: 80%)
+```
+
+What the presenter changes on the page reaches viewers following them, and
+every viewer when the presenter presses **Sync**. Form fields (sliders,
+checkboxes, selects, text) come along by themselves. Anything else, the page
+hands over with `presio.sync`. `get` returns JSON-able data, and Presio asks for
+it a few times a second. `set` receives a copy of the presenter's data:
+
+```js
+if (window.presio) presio.sync({
+  get: () => ({ points }),
+  set: (s) => { points = s.points; },
+});
+```
+
+Keep it small (it has to fit in 15 KB). The state also survives seeking back,
+but not a restart.
+
+Presio previews the animation where it can't run it: slide thumbnails, the
+next-slide view, and PDFs downloaded from Presio show a frame from near its
+end (2 s in when it has no set length). Pick another with `poster-at:`
+seconds. The PDF Typst writes shows `placeholder`, as for other media.
+
+The page is sandboxed: its scripts run, but on an opaque origin, with no
+access to presio, the deck or the viewer's storage (so `localStorage` and
+cookies are unavailable inside it).
+
+### HTML export
+
+Compiled with Typst's (experimental) HTML export,
+`typst compile --features html --format html deck.typ`, `media` puts the real
+thing on the page: an HTML animation in a sandboxed `<iframe>` — the same
+runtime as in presio, so it plays the same, with its controls unless
+`controls: false` — a `<video>`, an image, or a YouTube / Vimeo embed.
+Local video files are inlined as base64, which takes the compiler about two
+seconds per megabyte. Note that Typst's HTML export leaves out anything inside
+`align`, so wrap media in `align` only for PDF output.
+
 ## `media` parameters
 
 | Parameter      | Default | Notes                                                                                                       |
@@ -94,6 +167,12 @@ the viewer can use to build an iframe embed.
 | `aspect-ratio` | `none`  | Width/height ratio, e.g. `16/9`                                                                             |
 | `autoplay`     | `true`  | Forwarded to the viewer                                                                                     |
 | `loop`         | `true`  | Forwarded to the viewer                                                                                     |
+| `assets`       | `()`    | HTML animations: the files the page loads. An array of paths, or a dictionary from the URL the page uses to a path. |
+| `sync`         | `"presenter"` | HTML animations: `"presenter"` (viewers follow) or `"independent"` (each viewer plays it). Switchable live. |
+| `controls`     | `true`  | HTML animations: controls for viewers playing it themselves, and in HTML export. The presenter always has them. |
+| `interactive`  | `true`  | HTML animations: clicks, drags and hovers reach the page.                                                   |
+| `duration`     | `none`  | HTML animations: length in seconds, for the scrubber and looping. Measured from CSS animations when omitted and those are all it runs. |
+| `poster-at`    | `none`  | HTML animations: the moment (seconds) Presio uses as its preview in thumbnails, the next-slide view and PDFs downloaded from Presio. Defaults to near the end, or 2 s in when open-ended. |
 
 ## Supported media types
 
@@ -104,6 +183,7 @@ The MIME is sniffed from the extension of the source path's filename (file mode)
 | `.gif`    | `image/gif`  |
 | `.mp4`    | `video/mp4`  |
 | `.webm`   | `video/webm` |
+| `.html`   | `text/html` (an HTML animation) |
 
 ## Sidecar JSON schemas
 
@@ -125,6 +205,7 @@ Common fields: `kind`, `slide`, `id`, `mime`, `x_pt`, `y_pt`, `w_pt`, `h_pt`,
 | `url`     | `url` (direct media URL)         |
 | `youtube` | `url`, `video_id`                |
 | `vimeo`   | `url`, `video_id`                |
+| `html`    | `filename` (the page), `sync`, `controls`, `interactive`, and when given `assets` (`[{ "path", "filename" }]`, one attachment each), `duration` and `poster_at` |
 
 ```json
 {
@@ -147,9 +228,11 @@ alongside the source.
 
 | Framework   | Source                                                                                                                                | Compiled PDF                                                                                                         |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Plain Typst | [`examples/plain/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.2.3/examples/plain/example.typ)     | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.2.3/examples/plain/example.pdf)   |
-| polylux     | [`examples/polylux/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.2.3/examples/polylux/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.2.3/examples/polylux/example.pdf) |
-| touying     | [`examples/touying/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.2.3/examples/touying/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.2.3/examples/touying/example.pdf) |
+| Plain Typst | [`examples/plain/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/plain/example.typ)     | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/plain/example.pdf)   |
+| polylux     | [`examples/polylux/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/polylux/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/polylux/example.pdf) |
+| HTML animations | [`examples/html-animation/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/html-animation/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/html-animation/example.pdf) |
+| Workshop (touying, viewers drive) | [`examples/workshop/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/workshop/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/workshop/example.pdf) |
+| touying     | [`examples/touying/example.typ`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/touying/example.typ) | [`example.pdf`](https://github.com/benedict-armstrong/presio-typst-package/blob/v0.3.0/examples/touying/example.pdf) |
 
 Rebuild with `typst compile --root . examples/<framework>/example.typ examples/<framework>/example.pdf` from the repo root. The `--root .` flag is required so the file-`path` sandbox can resolve `demo.gif`.
 
